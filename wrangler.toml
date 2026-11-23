@@ -9,9 +9,6 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = false
 preview_urls = false
 
-[observability]
-enabled = true
-
 # Any variables or secrets are managed in the Cloudflare dashboard, not here.
 # keep_bindings tells the upload API to keep the existing bindings of these
 # types, so a deploy only replaces the code.
