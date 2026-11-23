@@ -31,12 +31,34 @@ Observability is not set in `wrangler.toml`, so each deploy turns it off.
 
 To deploy by hand: `npx wrangler login && npm run deploy`.
 
+## Configuration
+
+Set these in the Cloudflare dashboard (Workers → `stocks-mcp` → Settings →
+Variables and Secrets). `wrangler.toml` keeps them on every deploy
+(`keep_bindings`), so a deploy only replaces the code.
+
+| Name | Type | |
+|---|---|---|
+| `CF_ACCESS_TEAM_DOMAIN` | variable | `<team>.cloudflareaccess.com` |
+| `CF_ACCESS_AUD` | variable | The Access application's AUD tag (comma-separate several) |
+
+If either is missing, `/mcp` answers `500` instead of opening up.
+
 ## Authentication
 
 `stocks-mcp.shaneqi.com` is behind a Cloudflare Access application (the
 "Cloudflare account members" policy). Access answers unauthenticated requests
 with `401` and points MCP clients at its OAuth sign-in, so clients log in through
 Access when they connect.
+
+The Worker also verifies the Access JWT itself on every `/mcp` request
+(`src/access.ts`, ported from MoinMoinMCP), from `Cf-Access-Jwt-Assertion` (or
+`Authorization: Bearer <jwt>`): RS256 against
+`https://<team>/cdn-cgi/access/certs`, issuer, audience, and `exp`/`nbf` with
+60 s leeway. A missing or invalid token gets `401`; the reason is only logged,
+as `access denied: …`. `/health` and `/healthz` stay open.
+
+For `npm run dev`, put the two variables in `.dev.vars` (git-ignored).
 
 ## Connect a client
 

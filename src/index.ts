@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
+import { type AccessEnv, accessConfig, accessToken, verifyAccessJwt } from "./access";
 
 const YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/";
 
@@ -103,15 +104,36 @@ function createServer() {
 
 const mcpHandler = createMcpHandler(createServer, { route: "/mcp" });
 
+const unauthorized = () =>
+  new Response("Unauthorized\n", { status: 401, headers: { "WWW-Authenticate": "Bearer" } });
+
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    if (url.pathname === "/mcp") return mcpHandler(request, env, ctx);
-    if (url.pathname === "/") {
-      return new Response("Stocks MCP server. Connect an MCP client to /mcp\n", {
-        headers: { "content-type": "text/plain" },
-      });
+    const { pathname } = new URL(request.url);
+    if (pathname === "/health" || pathname === "/healthz") return new Response("ok\n");
+    if (pathname === "/") return new Response("Stocks MCP server. Use /mcp.\n");
+    if (pathname !== "/mcp") return new Response("Not found\n", { status: 404 });
+
+    // Verify the Cloudflare Access JWT (src/access.ts) before serving MCP.
+    const config = accessConfig(env);
+    if (!config) {
+      return new Response(
+        "Server is missing its Cloudflare Access settings (CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD).\n",
+        { status: 500 },
+      );
     }
-    return new Response("Not found", { status: 404 });
+    const token = accessToken(request);
+    if (!token) {
+      console.warn("access denied: no Cloudflare Access token");
+      return unauthorized();
+    }
+    try {
+      await verifyAccessJwt(token, config);
+    } catch (e) {
+      console.warn(`access denied: ${e instanceof Error ? e.message : e}`);
+      return unauthorized();
+    }
+
+    return mcpHandler(request, env, ctx);
   },
-} satisfies ExportedHandler;
+} satisfies ExportedHandler<AccessEnv>;
