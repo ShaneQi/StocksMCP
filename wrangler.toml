@@ -1,0 +1,18 @@
+name = "stocks-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-06-11"
+compatibility_flags = ["nodejs_compat"]
+
+# The Worker is served at stocks-mcp.<subdomain>.workers.dev. Every deploy keeps
+# preview URLs off.
+workers_dev = true
+preview_urls = false
+
+[observability]
+enabled = true
+
+# Any variables or secrets are managed in the Cloudflare dashboard, not here.
+# keep_bindings tells the upload API to keep the existing bindings of these
+# types, so a deploy only replaces the code.
+[unsafe.metadata]
+keep_bindings = ["plain_text", "json", "secret_text", "secret_key"]

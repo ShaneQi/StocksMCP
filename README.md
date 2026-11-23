@@ -17,10 +17,17 @@ npx @modelcontextprotocol/inspector   # point at http://localhost:8787/mcp
 
 ## Deploy
 
-```sh
-npx wrangler login
-npm run deploy       # -> https://stocks-mcp.<your-subdomain>.workers.dev/mcp
-```
+Every push to `main` deploys with `wrangler deploy`
+(`.github/workflows/deploy.yml`). It needs the repository secrets
+`CLOUDFLARE_API_TOKEN` (the "Edit Cloudflare Workers" template) and
+`CLOUDFLARE_ACCOUNT_ID`. Pushes that only touch Markdown are skipped, and the
+workflow can also be run by hand (`workflow_dispatch`).
+
+A deploy only replaces the code: any variables and secrets set in the dashboard
+stay (`keep_bindings` in `wrangler.toml`). Preview URLs stay off. The Worker is
+served at `https://stocks-mcp.<your-subdomain>.workers.dev/mcp`.
+
+To deploy by hand: `npx wrangler login && npm run deploy`.
 
 ## Connect a client
 
