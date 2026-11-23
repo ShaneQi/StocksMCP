@@ -24,8 +24,10 @@ Every push to `main` deploys with `wrangler deploy`
 workflow can also be run by hand (`workflow_dispatch`).
 
 A deploy only replaces the code: any variables and secrets set in the dashboard
-stay (`keep_bindings` in `wrangler.toml`). Preview URLs stay off. The Worker is
-served at `https://stocks-mcp.<your-subdomain>.workers.dev/mcp`.
+stay (`keep_bindings` in `wrangler.toml`). The `workers.dev` URL and preview URLs
+stay off, so the Worker is only reachable through a custom domain: add one in the
+dashboard (Workers → `stocks-mcp` → Settings → Domains & Routes) and the server is
+at `https://<your-domain>/mcp`.
 
 To deploy by hand: `npx wrangler login && npm run deploy`.
 
@@ -34,7 +36,7 @@ To deploy by hand: `npx wrangler login && npm run deploy`.
 Claude Code:
 
 ```sh
-claude mcp add --transport http stocks https://stocks-mcp.<your-subdomain>.workers.dev/mcp
+claude mcp add --transport http stocks https://<your-domain>/mcp
 ```
 
 Claude.ai / Desktop: **Settings → Connectors → Add custom connector**, then paste the `/mcp` URL.

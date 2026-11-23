@@ -3,9 +3,10 @@ main = "src/index.ts"
 compatibility_date = "2026-06-11"
 compatibility_flags = ["nodejs_compat"]
 
-# The Worker is served at stocks-mcp.<subdomain>.workers.dev. Every deploy keeps
-# preview URLs off.
-workers_dev = true
+# Only a custom domain (set up in the dashboard) serves the Worker. Every deploy
+# keeps the workers.dev URL and preview URLs off. No routes are listed here, so a
+# custom domain set up in the dashboard is left as it is.
+workers_dev = false
 preview_urls = false
 
 [observability]
