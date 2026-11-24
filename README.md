@@ -1,11 +1,13 @@
 # StocksMCP
 
-A remote [MCP](https://modelcontextprotocol.io) server on **Cloudflare Workers (free plan)** that returns the current market price for a ticker symbol.
+A remote [MCP](https://modelcontextprotocol.io) server on **Cloudflare Workers (free plan)** that returns the current market price, or the closing price on a given date, for a ticker symbol.
 
-- **Tool:** `get_stock_price({ symbol })`. Works for stocks, ETFs, indices and crypto (`AAPL`, `SPY`, `^GSPC`, `BTC-USD`, `7203.T`, …)
+- **Tools** (both read-only). They work for stocks, ETFs, indices and crypto (`AAPL`, `SPY`, `^GSPC`, `BTC-USD`, `7203.T`, …):
+  - `get_stock_price({ symbol })`: the current price.
+  - `get_close_price({ symbol, date })`: the daily close on `date` (`YYYY-MM-DD`, in the exchange's time zone). If the market was closed that day, it returns the last trading day before it and says so. It also returns the split- and dividend-adjusted close, open, high, low and volume. For today while the session is open, the value is the latest price, marked `final: false`.
 - **Data:** Yahoo Finance's public chart endpoint. No API key needed. Quotes may be delayed up to about 15 minutes, depending on the exchange.
 - **Transport:** Streamable HTTP at `/mcp`, built with the stateless `createMcpHandler` from the Cloudflare `agents` package. It needs no Durable Objects, KV or other paid features.
-- Responses are edge-cached for 15s to stay gentle on the upstream.
+- Responses are edge-cached for 15s to stay gentle on the upstream. Closes more than a day old are cached for a day.
 
 ## Develop
 
@@ -76,4 +78,10 @@ Claude.ai / Desktop: **Settings → Connectors → Add custom connector**, then 
 AAPL (Apple Inc.): 349.92 USD | +7.36 (+2.1485%) | as of 2026-11-23T19:23:24.000Z
 ```
 
-The tool also returns a JSON block with the symbol, name, price, currency, change, change percent, previous close, day high and low, volume, exchange and market time.
+`get_close_price` for a Sunday:
+
+```
+AAPL (Apple Inc.) close on 2026-11-20: 342.55999755859375 USD (no trading on 2026-11-22; last trading day before it)
+```
+
+Each tool also returns a JSON block. For `get_stock_price` it has the symbol, name, price, currency, change, change percent, previous close, day high and low, volume, exchange and market time.
